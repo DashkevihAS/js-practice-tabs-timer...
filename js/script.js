@@ -176,52 +176,94 @@ window.addEventListener('DOMContentLoaded', () => {
 
             
             element.innerHTML = `
-                <img src=${this.src} alt=${this.alt}>
-                <h3 class="menu__item-subtitle">${this.title}</h3>
-                <div class="menu__item-descr">${this.descr}</div>
-                <div class="menu__item-divider"></div>
-                <div class="menu__item-price">
-                    <div class="menu__item-cost">Цена:</div>
-                    <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
-                </div>
+            <img src=${this.src} alt=${this.alt}>
+            <h3 class="menu__item-subtitle">${this.title}</h3>
+            <div class="menu__item-descr">${this.descr}</div>
+            <div class="menu__item-divider"></div>
+            <div class="menu__item-price">
+                <div class="menu__item-cost">Цена:</div>
+                <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
+            </div>
             `;
             this.parent.append(element);
         }
     }
+
+    async function getResource(url) {
+        let res = await fetch(url);
+
+        if (!res.OK && res.status != 200) {
+            throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+        }
+
+        return await res.json();
+
+    }
+
+    getResource('http://localhost:3000/menu')
+        .then(data => {
+            data.forEach(({img, altimg, title, descr, price}) => {
+                new MenuCard(img, altimg, title, descr, price, ".menu .container").render();
+            });
+        });
+
+
+    // getResource('http://localhost:3000/menu')
+    // .then(data => cteateCard(data));
+
+    // function cteateCard(data) {
+    //     data.forEach(({img, altimg, title, descr, price}) => {
+    //         const element = document.createElement('div');
+    //         element.classList.add('menu__item');
+
+    //         element.innerHTML = `
+    //         <img src=${img} alt=${altimg}>
+    //             <h3 class="menu__item-subtitle">${title}</h3>
+    //             <div class="menu__item-descr">${descr}</div>
+    //             <div class="menu__item-divider"></div>
+    //             <div class="menu__item-price">
+    //                 <div class="menu__item-cost">Цена:</div>
+    //                 <div class="menu__item-total"><span>${price}</span> грн/день</div>
+    //             </div>
+    //         `;
+    //         document.querySelector('.menu .container').append(element);
+    //     });
+    // }
+
     // ---Можно запустить так:-----
     // const div = new MenuCard(аргументы);
     // div.render();
     
 
     /* так можно если вызываем один раз и больше с ним ничего не делаем : */
-    new MenuCard(
-        "img/tabs/vegy.jpg",
-        "vegy",
-        'Меню "Фитнес"',
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-        9,
-        '.menu__field .container'
-    ).render(); 
+    // new MenuCard(
+    //     "img/tabs/vegy.jpg",
+    //     "vegy",
+    //     'Меню "Фитнес"',
+    //     'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
+    //     9,
+    //     '.menu__field .container'
+    // ).render(); 
 
-    new MenuCard(
-        "img/tabs/elite.jpg",
-        "elite",
-        'Меню “Премиум”',
-        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        18,
-        '.menu__field .container',
-        'menu__item',
-        'big'
-    ).render(); 
+    // new MenuCard(
+    //     "img/tabs/elite.jpg",
+    //     "elite",
+    //     'Меню “Премиум”',
+    //     'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
+    //     18,
+    //     '.menu__field .container',
+    //     'menu__item',
+    //     'big'
+    // ).render(); 
 
-    new MenuCard(
-        "img/tabs/post.jpg",
-        "post",
-        'Меню "Постное"',
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-        15,
-        '.menu__field .container'
-    ).render();  
+    // new MenuCard(
+    //     "img/tabs/post.jpg",
+    //     "post",
+    //     'Меню "Постное"',
+    //     'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
+    //     15,
+    //     '.menu__field .container'
+    // ).render();  
 
     //Forms
 
@@ -234,10 +276,23 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     forms.forEach((item)=> {
-        postData(item); 
+        bindPostData(item); 
     });
 
-    function postData(form) {
+    const postData = async (url, data) => {
+        const res = await fetch(url, {
+            method: "POST",
+                headers: {
+                    'Content-type' : 'application/json'
+                },
+                body: data
+        });
+
+        return await res.json();
+
+    };
+
+    function bindPostData(form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -250,20 +305,10 @@ window.addEventListener('DOMContentLoaded', () => {
             form.insertAdjacentElement('afterend',statusMessage);
 
             const formData = new FormData(form);
+            // formData сначала в массив массивов, потом в объект и потом в JSON формат:
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
 
-            const object = {};
-            formData.forEach((value, key) => {
-                object[key] = value;
-            });
-
-            fetch('server.php', {
-                method: "POST",
-                headers: {
-                    'Content-type' : 'application/json'
-                },
-                body: JSON.stringify(object)
-            })
-            .then(data => data.text())
+            postData('http://localhost:3000/requests', json)
             .then(data => {
                 console.log(data);
                 showThanksModal(message.success);
@@ -301,7 +346,253 @@ window.addEventListener('DOMContentLoaded', () => {
             closeModal();
         }, 4000);
     }
-}); 
+
+    fetch('http://localhost:3000/menu')
+    .then(data =>data.json());
+
+//   slider
+
+    const slides = document.querySelectorAll('.offer__slide');
+    const slider = document.querySelector('.offer__slider');
+    const current = document.querySelector('#current');
+    const total = document.querySelector('#total');
+    const next = document.querySelector('.offer__slider-next');
+    const prev = document.querySelector('.offer__slider-prev');
+    const slidesWrapper = document.querySelector('.offer__slider-wrapper');
+    const slidesField = document.querySelector('.offer__slider-inner');
+    const width = window.getComputedStyle(slidesWrapper).width;
+
+    let slideIndex = 1;
+    let offset =0;
+
+
+    total.textContent = setZero(slides.length);
+    current.textContent = setZero(slideIndex);
+
+    slidesField.style.width = 100 * slides.length +'%';
+    slidesField.style.display = 'flex';
+    slidesField.style.transition = '0.5s all';
+
+    slidesWrapper.style.overflow = 'hidden';
+
+    slides.forEach( slide => {
+        slide.style.width = width;
+    });
+
+    slider.style.position = 'relative';
+    const indicators = document.createElement('ol');
+    const dots = [];
+    indicators.style.cssText = `
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 15;
+        display: flex;
+        justify-content: center;
+        margin-right: 15%;
+        margin-left: 15%;
+        list-style: none;
+    `;
+    slider.append(indicators);
+
+    for (let i=0; i<slides.length; i++) {
+        const dot = document.createElement('li');
+        dot.setAttribute('data-slide-to',i+1);
+        dot.style.cssText = `
+            box-sizing: content-box;
+            flex: 0 1 auto;
+            width: 30px;
+            height: 6px;
+            margin-right: 3px;
+            margin-left: 3px;
+            cursor: pointer;
+            background-color: #fff;
+            background-clip: padding-box;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            opacity: .5;
+            transition: opacity .6s ease;
+        `;
+        indicators.append(dot);
+        if (i===0) {
+            dot.style.opacity = '1';
+        }
+        dots[i] = dot;
+    }
+
+    function chooseDot(dots) {
+        dots.forEach( dot => {
+            dot.style.opacity = '.5';
+        });
+        dots[slideIndex-1].style.opacity = '1';
+    }
+
+    function deleteNoDigit(str) {
+        return +str.replace(/\D/ig,'');
+    }
+
+    dots.forEach( (dot) => {
+        dot.addEventListener ('click', (e) => {
+            const slideTo = e.target.getAttribute('data-slide-to');
+
+            slideIndex = slideTo;
+
+            chooseDot(dots);
+
+            offset = deleteNoDigit(width) * (slideTo -1);
+            slidesField.style.transform = `translateX(-${offset}px)`;
+
+            current.textContent = setZero(slideTo);
+
+        });
+    });
+
+
+    
+
+    next.addEventListener('click', () => {
+        if (offset == deleteNoDigit(width) * (slides.length -1)) {
+            offset =0;
+            current.textContent = setZero(1);
+            slideIndex = 1;
+        } else {
+            offset += deleteNoDigit(width);
+            current.textContent = setZero(++slideIndex);
+        }
+
+        slidesField.style.transform = `translateX(-${offset}px)`;
+
+        chooseDot(dots);
+
+        }); 
+
+
+    prev.addEventListener('click', () => {
+        if (offset == 0) {
+            offset = deleteNoDigit(width) * (slides.length -1);
+            current.textContent = setZero(slides.length);
+            slideIndex = slides.length;
+        } else {
+            offset -= deleteNoDigit(width);
+            current.textContent = setZero(--slideIndex);
+        }
+
+        slidesField.style.transform = `translateX(-${offset}px)`;
+
+        chooseDot(dots);
+
+        }); 
+    
+
+
+    //---------первый вариант --------------------
+    // showSlides(slideIndex);
+    // total.textContent = setZero(slides.length);
+
+    // function showSlides(n) {
+    //     if (n >slides.length) {
+    //         slideIndex = 1;
+    //     }
+
+    //     if (n<1) {
+    //         slideIndex = slides.length;
+    //     }
+    
+    //     slides.forEach(slide => slide.classList.add('hide'));
+                
+    //     slides[slideIndex -1].classList.remove('hide');
+    //     current.textContent = setZero(slideIndex);
+        
+    // }
+
+    // function plusSlides(n) {
+    //     showSlides(slideIndex += n);
+    // }
+
+    // prev.addEventListener('click', () => {
+    //     plusSlides(-1);
+    // }); 
+    // next.addEventListener('click', () => {
+    //     plusSlides(1);
+    // }); 
+//--------------------------------------------------------------//
+
+//calc  
+
+const result = document.querySelector('.calculating__result span');
+
+let sex = 'female',
+    height, weight, age,
+    ratio = 1.375;
+
+    function calcTotal() {
+        if (!sex || !height || !weight || !age || !ratio) {
+            result.textContent = '____';
+            return;
+        }
+
+        if (sex === 'female') {
+            result.textContent = Math.round((447.6 + (9.2 * weight) + (3.1 * height) - (4.3 * age)) * ratio);
+        } else {
+            result.textContent = Math.round((88.36 + (13.4 * weight) + (4.8 * height) - (5.7 * age)) * ratio);
+        }
+    }
+    calcTotal();
+
+    function getStaticInformation(parentSelector, activSelector) {
+        const elements = document.querySelectorAll(`${parentSelector} div`);
+
+        elements.forEach( element => {
+            element.addEventListener('click', (e) => {
+                if (e.target.getAttribute('data-ratio')) {
+                    ratio = +e.target.getAttribute('data-ratio');
+                } else {
+                    sex = e.target.getAttribute('id');
+                }
+
+                elements.forEach( element => {
+                    element.classList.remove(activSelector);
+                }); 
+
+                e.target.classList.add(activSelector);   
+            
+                calcTotal();
+            });
+        });
+    }
+
+
+    getStaticInformation('#gender', 'calculating__choose-item_active');
+    getStaticInformation('.calculating__choose_big', 'calculating__choose-item_active');
+
+    function getDinamicInformation(selector) {
+        const input = document.querySelector(selector);
+
+        input.addEventListener('input',() => {
+            switch(input.getAttribute('id')) {
+                case "height":
+                    height = +input.value;
+                    break;
+                case "weight":
+                    weight = +input.value;
+                    break;
+                case "age":
+                    age = +input.value;
+                    break;   
+            }
+            calcTotal();
+        });
+        
+        
+    }
+
+    getDinamicInformation('#height');
+    getDinamicInformation("#weight");
+    getDinamicInformation("#age");
+    
+   
+});
 
 
 
